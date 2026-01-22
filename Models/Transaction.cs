@@ -21,10 +21,10 @@ namespace Expense_Tracker_mvc.Models
         [MaxLength(50)]
         public string Category { get; set; } = string.Empty;
 
-        [MaxLength(200)]
+        [MaxLength(500)]
         public string? Description { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     }
 }
