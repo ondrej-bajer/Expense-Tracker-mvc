@@ -1,3 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using System;
+using Expense_Tracker_mvc.Data;
+
 namespace Expense_Tracker_mvc
 {
     public class Program
@@ -8,6 +12,10 @@ namespace Expense_Tracker_mvc
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            //register sqlite
+            builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             var app = builder.Build();
 
