@@ -25,6 +25,7 @@ namespace Expense_Tracker_mvc.Controllers
             var transactions = await _context.Transactions
                 .Include(t => t.Category)
                 .OrderByDescending(t => t.Date)
+                .ThenByDescending(t => t.CreatedAt)
                 .ToListAsync();
 
             return View(transactions);
@@ -178,6 +179,7 @@ namespace Expense_Tracker_mvc.Controllers
             }
 
             var transaction = await _context.Transactions
+                .Include(t => t.Category)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (transaction == null)
             {

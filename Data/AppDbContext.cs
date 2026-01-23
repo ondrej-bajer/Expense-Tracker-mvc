@@ -12,5 +12,6 @@ namespace Expense_Tracker_mvc.Data
 
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<TransactionCategory> TransactionCategories { get; set; }
+
     }
 }
