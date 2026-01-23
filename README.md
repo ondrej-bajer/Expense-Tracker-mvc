@@ -14,4 +14,9 @@ A simple ASP.NET Core MVC expense tracker application.
 - SQLite
 
 ## Status
-Work in progress.
+Work in progress. Expected to add:     
+• Authentication (ASP.NET Core Identity)
+• Tracker for different currency
+• Add per-user transactions (OwnerId)
+• Add export to CSV/PDF
+• Add some fancy charts and statistics
