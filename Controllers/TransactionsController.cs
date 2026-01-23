@@ -46,6 +46,12 @@ namespace Expense_Tracker_mvc.Controllers
         // GET: Transactions/Create
         public IActionResult Create()
         {
+            ViewData["CategoryId"] = new SelectList(
+                _context.TransactionCategories.Where(c => c.IsActive),
+                "Id",
+                "Name"
+            );
+
             return View();
         }
 
@@ -54,15 +60,25 @@ namespace Expense_Tracker_mvc.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Date,Amount,Type,Category,Description")] Transaction transaction)
+        public async Task<IActionResult> Create([Bind("Id,Date,Amount,Type,CategoryId,Description")] Transaction transaction)
         {
             if (ModelState.IsValid)
             {
                 transaction.CreatedAt = DateTime.UtcNow;
+
                 _context.Add(transaction);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
+            // Pokud validace selže, musíme dropdown znovu naplnit + zachovat vybranou hodnotu
+            ViewData["CategoryId"] = new SelectList(
+                _context.TransactionCategories.Where(c => c.IsActive),
+                "Id",
+                "Name",
+                transaction.CategoryId
+            );
+
             return View(transaction);
         }
 
@@ -79,6 +95,14 @@ namespace Expense_Tracker_mvc.Controllers
             {
                 return NotFound();
             }
+
+            ViewData["CategoryId"] = new SelectList(
+                _context.TransactionCategories.Where(c => c.IsActive),
+                "Id",
+                "Name",
+                transaction.CategoryId
+            );
+
             return View(transaction);
         }
 
@@ -87,7 +111,7 @@ namespace Expense_Tracker_mvc.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Date,Amount,Type,Category,Description")] Transaction transaction)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Date,Amount,Type,CategoryId,Description")] Transaction transaction)
         {
             if (id != transaction.Id)
             {
@@ -98,6 +122,17 @@ namespace Expense_Tracker_mvc.Controllers
             {
                 try
                 {
+                    // zachovej CreatedAt (needituj ho z formuláře)
+                    var existing = await _context.Transactions.AsNoTracking()
+                        .FirstOrDefaultAsync(t => t.Id == id);
+
+                    if (existing == null)
+                    {
+                        return NotFound();
+                    }
+
+                    transaction.CreatedAt = existing.CreatedAt;
+
                     _context.Update(transaction);
                     await _context.SaveChangesAsync();
                 }
@@ -112,8 +147,18 @@ namespace Expense_Tracker_mvc.Controllers
                         throw;
                     }
                 }
+
                 return RedirectToAction(nameof(Index));
             }
+
+            // při chybě validace znovu naplnit dropdown
+            ViewData["CategoryId"] = new SelectList(
+                _context.TransactionCategories.Where(c => c.IsActive),
+                "Id",
+                "Name",
+                transaction.CategoryId
+            );
+
             return View(transaction);
         }
 

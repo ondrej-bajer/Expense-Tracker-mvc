@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using Expense_Tracker_mvc.Data;
+using System.IO;
+
 
 namespace Expense_Tracker_mvc
 {
@@ -10,12 +12,14 @@ namespace Expense_Tracker_mvc
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            var dbPath = Path.Combine(builder.Environment.ContentRootPath, "expense_tracker.db");
+
+
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
-            //register sqlite
-            builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite($"Data Source={dbPath}"));
+            Console.WriteLine($"[DB] Using: {dbPath}");
 
             var app = builder.Build();
 

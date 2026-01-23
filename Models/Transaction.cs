@@ -7,6 +7,8 @@ namespace Expense_Tracker_mvc.Models
     {
         public int Id { get; set; }
 
+        public int? CategoryId { get; set; }
+
         [Required]
         public DateTime Date { get; set; }
 
@@ -17,9 +19,7 @@ namespace Expense_Tracker_mvc.Models
         [Required]
         public TransactionType Type { get; set; }
 
-        [Required]
-        [MaxLength(50)]
-        public string Category { get; set; } = string.Empty;
+        public TransactionCategory? Category { get; set; }
 
         [MaxLength(500)]
         public string? Description { get; set; }
