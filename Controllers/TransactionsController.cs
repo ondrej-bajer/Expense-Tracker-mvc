@@ -22,7 +22,12 @@ namespace Expense_Tracker_mvc.Controllers
         // GET: Transactions
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Transactions.ToListAsync());
+            var transactions = await _context.Transactions
+                .Include(t => t.Category)
+                .OrderByDescending(t => t.Date)
+                .ToListAsync();
+
+            return View(transactions);
         }
 
         // GET: Transactions/Details/5
@@ -34,7 +39,9 @@ namespace Expense_Tracker_mvc.Controllers
             }
 
             var transaction = await _context.Transactions
+                .Include(t => t.Category)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (transaction == null)
             {
                 return NotFound();
