@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Expense_Tracker_mvc.Data;
 using Expense_Tracker_mvc.Models;
+using Expense_Tracker_mvc.ViewModels;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using Expense_Tracker_mvc.Models.Enums;
 
 namespace Expense_Tracker_mvc.Controllers
 {
@@ -20,15 +24,80 @@ namespace Expense_Tracker_mvc.Controllers
         }
 
         // GET: Transactions
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(TransactionsIndexVm vm)
         {
-            var transactions = await _context.Transactions
+            // Base query
+            var query = _context.Transactions
                 .Include(t => t.Category)
+                .AsQueryable();
+
+            // Filters
+            if (vm.Type.HasValue)
+                query = query.Where(t => t.Type == vm.Type.Value);
+
+            if (vm.CategoryId.HasValue)
+                query = query.Where(t => t.CategoryId == vm.CategoryId.Value);
+
+            if (vm.From.HasValue)
+                query = query.Where(t => t.Date >= vm.From.Value);
+
+            if (vm.To.HasValue)
+                query = query.Where(t => t.Date <= vm.To.Value);
+
+            if (vm.AmountMin.HasValue)
+                query = query.Where(t => t.Amount >= vm.AmountMin.Value);
+
+            if (vm.AmountMax.HasValue)
+                query = query.Where(t => t.Amount <= vm.AmountMax.Value);
+
+            if (!string.IsNullOrWhiteSpace(vm.Search))
+            {
+                var s = vm.Search.Trim();
+                query = query.Where(t =>
+                    (t.Description != null && t.Description.Contains(s)) ||
+                    (t.Category != null && t.Category.Name.Contains(s)));
+            }
+
+            // Ordering
+            query = query
                 .OrderByDescending(t => t.Date)
-                .ThenByDescending(t => t.CreatedAt)
+                .ThenByDescending(t => t.CreatedAt);
+
+            // Data
+            vm.Items = await query.ToListAsync();
+
+            // Summary (počítáme z vyfiltrovaných položek)
+            vm.TotalIncome = vm.Items
+                .Where(t => t.Type == TransactionType.Income)
+                .Sum(t => t.Amount);
+
+            vm.TotalExpense = vm.Items
+                .Where(t => t.Type == TransactionType.Expense)
+                .Sum(t => t.Amount);
+
+            // Dropdowns
+            vm.Categories = await _context.TransactionCategories
+                .Where(c => c.IsActive)
+                .OrderBy(c => c.Name)
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name,
+                    Selected = vm.CategoryId.HasValue && c.Id == vm.CategoryId.Value
+                })
                 .ToListAsync();
 
-            return View(transactions);
+            vm.Types = Enum.GetValues(typeof(TransactionType))
+                .Cast<TransactionType>()
+                .Select(t => new SelectListItem
+                {
+                    Value = t.ToString(),
+                    Text = t.ToString(),
+                    Selected = vm.Type.HasValue && t == vm.Type.Value
+                })
+                .ToList();
+
+            return View(vm);
         }
 
         // GET: Transactions/Details/5

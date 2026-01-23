@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Expense_Tracker_mvc.Models.Transaction>
+﻿@model Expense_Tracker_mvc.ViewModels.TransactionsIndexVm
+@using Expense_Tracker_mvc.Models.Enums
 
 @{
     ViewData["Title"] = "Index";
@@ -9,57 +10,97 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-2">
+        <label class="form-label">Type</label>
+        <select class="form-select" name="Type">
+            <option value="">-- All --</option>
+            @foreach (var t in Model.Types)
+            {
+                <option value="@t.Value" selected="@t.Selected">@t.Text</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Category</label>
+        <select class="form-select" name="CategoryId">
+            <option value="">-- All --</option>
+            @foreach (var c in Model.Categories)
+            {
+                <option value="@c.Value" selected="@c.Selected">@c.Text</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">From</label>
+        <input type="date" class="form-control" name="From"
+               value="@(Model.From?.ToString("yyyy-MM-dd"))" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">To</label>
+        <input type="date" class="form-control" name="To"
+               value="@(Model.To?.ToString("yyyy-MM-dd"))" />
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Search</label>
+        <input class="form-control" name="Search" value="@Model.Search" placeholder="Description or category..." />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Min</label>
+        <input type="number" step="0.01" class="form-control" name="AmountMin" value="@(Model.AmountMin?.ToString() ?? "")" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Max</label>
+        <input type="number" step="0.01" class="form-control" name="AmountMax" value="@(Model.AmountMax?.ToString() ?? "")" />
+    </div>
+
+    <div class="col-md-3 d-flex align-items-end gap-2">
+        <button class="btn btn-primary" type="submit">Apply</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
+    </div>
+</form>
+
+<div class="row mb-3">
+    <div class="col-md-4"><strong>Total income:</strong> @Model.TotalIncome.ToString("F2")</div>
+    <div class="col-md-4"><strong>Total expense:</strong> @Model.TotalExpense.ToString("F2")</div>
+    <div class="col-md-4"><strong>Balance:</strong> @Model.Balance.ToString("F2")</div>
+</div>
+
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Date)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Amount)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Type)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Category)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedAt)
-            </th>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Type</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Created</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @item.Date.ToString("dd.MM.yyyy")
-            </td>
-            <td>
-                @item.Amount.ToString("F1")
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Type)
-            </td>
-            <td>
-                @(item.Category?.Name ?? "-")
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedAt)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>@item.Date.ToString("dd.MM.yyyy")</td>
+                <td>@item.Amount.ToString("F2")</td>
+                <td>@item.Type</td>
+                <td>@(item.Category?.Name ?? "-")</td>
+                <td>@item.Description</td>
+                <td>@item.CreatedAt.ToString("dd.MM.yyyy")</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
