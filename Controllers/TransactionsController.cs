@@ -8,8 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Expense_Tracker_mvc.Data;
 using Expense_Tracker_mvc.Models;
 using Expense_Tracker_mvc.ViewModels;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using Expense_Tracker_mvc.Models.Enums;
 
 namespace Expense_Tracker_mvc.Controllers
