@@ -13,7 +13,7 @@ namespace Expense_Tracker_mvc.Models
         public DateTime Date { get; set; }
 
         [Required]
-        [Range(0.01, double.MaxValue)]
+        [Range(0.1, double.MaxValue)]
         public decimal Amount { get; set; }
 
         [Required]

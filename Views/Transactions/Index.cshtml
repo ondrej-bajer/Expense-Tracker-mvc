@@ -7,65 +7,88 @@
 
 <h1>Index</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex gap-2">
+        <a class="btn btn-primary" asp-action="Create">
+            <i class="bi bi-plus-lg me-1"></i>
+            Add transaction
+        </a>
 
-<form method="get" class="row g-2 mb-3">
-    <div class="col-md-2">
-        <label class="form-label">Type</label>
-        <select class="form-select" name="Type">
-            <option value="">-- All --</option>
-            @foreach (var t in Model.Types)
-            {
-                <option value="@t.Value" selected="@t.Selected">@t.Text</option>
-            }
-        </select>
+        <button class="btn btn-outline-secondary"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#filtersPanel"
+                aria-expanded="false"
+                aria-controls="filtersPanel">
+            <i class="bi bi-funnel me-1"></i>
+            Filters
+        </button>
     </div>
+</div>
 
-    <div class="col-md-3">
-        <label class="form-label">Category</label>
-        <select class="form-select" name="CategoryId">
-            <option value="">-- All --</option>
-            @foreach (var c in Model.Categories)
-            {
-                <option value="@c.Value" selected="@c.Selected">@c.Text</option>
-            }
-        </select>
-    </div>
 
-    <div class="col-md-2">
-        <label class="form-label">From</label>
-        <input type="date" class="form-control" name="From"
-               value="@(Model.From?.ToString("yyyy-MM-dd"))" />
-    </div>
+<div class="collapse mb-3" id="filtersPanel">
+    <div class="card">
+        <div class="card-body">
+            <form method="get" class="row g-2 mb-3">
+                <div class="col-md-2">
+                    <label class="form-label">Type</label>
+                    <select class="form-select" name="Type">
+                        <option value="">-- All --</option>
+                        @foreach (var t in Model.Types)
+                        {
+                            <option value="@t.Value" selected="@t.Selected">@t.Text</option>
+                        }
+                    </select>
+                </div>
 
-    <div class="col-md-2">
-        <label class="form-label">To</label>
-        <input type="date" class="form-control" name="To"
-               value="@(Model.To?.ToString("yyyy-MM-dd"))" />
-    </div>
+                <div class="col-md-3">
+                    <label class="form-label">Category</label>
+                    <select class="form-select" name="CategoryId">
+                        <option value="">-- All --</option>
+                        @foreach (var c in Model.Categories)
+                        {
+                            <option value="@c.Value" selected="@c.Selected">@c.Text</option>
+                        }
+                    </select>
+                </div>
 
-    <div class="col-md-3">
-        <label class="form-label">Search</label>
-        <input class="form-control" name="Search" value="@Model.Search" placeholder="Description or category..." />
-    </div>
+                <div class="col-md-2">
+                    <label class="form-label">From</label>
+                    <input type="date" class="form-control" name="From"
+                           value="@(Model.From?.ToString("yyyy-MM-dd"))" />
+                </div>
 
-    <div class="col-md-2">
-        <label class="form-label">Min</label>
-        <input type="number" step="0.01" class="form-control" name="AmountMin" value="@(Model.AmountMin?.ToString() ?? "")" />
-    </div>
+                <div class="col-md-2">
+                    <label class="form-label">To</label>
+                    <input type="date" class="form-control" name="To"
+                           value="@(Model.To?.ToString("yyyy-MM-dd"))" />
+                </div>
 
-    <div class="col-md-2">
-        <label class="form-label">Max</label>
-        <input type="number" step="0.01" class="form-control" name="AmountMax" value="@(Model.AmountMax?.ToString() ?? "")" />
-    </div>
+                <div class="col-md-3">
+                    <label class="form-label">Search</label>
+                    <input class="form-control" name="Search" value="@Model.Search" placeholder="Description or category..." />
+                </div>
 
-    <div class="col-md-3 d-flex align-items-end gap-2">
-        <button class="btn btn-primary" type="submit">Apply</button>
-        <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
+                <div class="col-md-2">
+                    <label class="form-label">Min</label>
+                    <input type="number" step="0.01" class="form-control" name="AmountMin" value="@(Model.AmountMin?.ToString() ?? "")" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Max</label>
+                    <input type="number" step="0.01" class="form-control" name="AmountMax" value="@(Model.AmountMax?.ToString() ?? "")" />
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button class="btn btn-primary" type="submit">Apply</button>
+                    <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
+                </div>
+            </form>
+        </div>
     </div>
-</form>
+</div>
+
 
 <div class="row mb-3">
     <div class="col-md-4"><strong>Total income:</strong> @Model.TotalIncome.ToString("F2")</div>

@@ -56,7 +56,7 @@ namespace Expense_Tracker_mvc.Controllers
                     (t.Category != null && t.Category.Name.Contains(s)));
             }
 
-            // Ordering
+            // Ordering based first on date then creation date
             query = query
                 .OrderByDescending(t => t.Date)
                 .ThenByDescending(t => t.CreatedAt);
@@ -64,7 +64,7 @@ namespace Expense_Tracker_mvc.Controllers
             // Data
             vm.Items = await query.ToListAsync();
 
-            // Summary (počítáme z vyfiltrovaných položek)
+            // Summary (based on filtered items)
             vm.TotalIncome = vm.Items
                 .Where(t => t.Type == TransactionType.Income)
                 .Sum(t => t.Amount);
@@ -146,7 +146,7 @@ namespace Expense_Tracker_mvc.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Pokud validace selže, musíme dropdown znovu naplnit + zachovat vybranou hodnotu
+            // In a case of wrong validation fill dropdown + keep chosen value
             ViewData["CategoryId"] = new SelectList(
                 _context.TransactionCategories.Where(c => c.IsActive),
                 "Id",
@@ -197,7 +197,7 @@ namespace Expense_Tracker_mvc.Controllers
             {
                 try
                 {
-                    // zachovej CreatedAt (needituj ho z formuláře)
+                    // keep CreatedAt but dont edit it in form
                     var existing = await _context.Transactions.AsNoTracking()
                         .FirstOrDefaultAsync(t => t.Id == id);
 
@@ -226,7 +226,7 @@ namespace Expense_Tracker_mvc.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // při chybě validace znovu naplnit dropdown
+            // In a case of wrong validation "fallback" for dropdown
             ViewData["CategoryId"] = new SelectList(
                 _context.TransactionCategories.Where(c => c.IsActive),
                 "Id",
@@ -237,7 +237,7 @@ namespace Expense_Tracker_mvc.Controllers
             return View(transaction);
         }
 
-        // GET: Transactions/Delete/5
+        // GET: Transactions/Delete/-
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -256,7 +256,7 @@ namespace Expense_Tracker_mvc.Controllers
             return View(transaction);
         }
 
-        // POST: Transactions/Delete/5
+        // POST: Transactions/Delete/id
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

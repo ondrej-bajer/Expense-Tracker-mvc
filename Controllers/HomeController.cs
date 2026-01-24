@@ -30,7 +30,7 @@ namespace Expense_Tracker_mvc.Controllers
                 .Where(t => t.Date >= from && t.Date < to)
                 .ToListAsync();
 
-            // Income/Expense in-memory (SQLite neumí SUM(decimal))
+            // Income/Expense in-memory (SQLite problem with SUM(decimal))
             var income = monthItems
                 .Where(t => t.Type == TransactionType.Income)
                 .Sum(t => t.Amount);
@@ -39,7 +39,7 @@ namespace Expense_Tracker_mvc.Controllers
                 .Where(t => t.Type == TransactionType.Expense)
                 .Sum(t => t.Amount);
 
-            // Top category this month (in-memory)
+            // Top category this month
             var topCategory = monthItems
                 .Where(t => t.Category != null)
                 .GroupBy(t => t.Category!.Name)
