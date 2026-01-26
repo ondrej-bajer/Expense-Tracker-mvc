@@ -5,7 +5,7 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1 class="h5 mb-3"><i class="bi bi-arrow-left-right"></i> Transactions</h1>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div class="d-flex gap-2">
@@ -29,7 +29,7 @@
 
 <div class="collapse mb-3" id="filtersPanel">
     <div class="card">
-        <div class="card-body">
+        <div class="card-body p-2 rounded-4 shadow-sm">
             <form method="get" class="row g-2 mb-3">
                 <div class="col-md-2">
                     <label class="form-label">Type</label>
@@ -89,41 +89,50 @@
     </div>
 </div>
 
+<div class="card">
+    <div class="card-body p-2 rounded-4 shadow-sm">
+        <div class="row mb-3">
+            <div class="col-md-4"><strong>Total income:</strong> @Model.TotalIncome.ToString("F2")</div>
+            <div class="col-md-4"><strong>Total expense:</strong> @Model.TotalExpense.ToString("F2")</div>
+            <div class="col-md-4"><strong>Balance:</strong> @Model.Balance.ToString("F2")</div>
+        </div>
 
-<div class="row mb-3">
-    <div class="col-md-4"><strong>Total income:</strong> @Model.TotalIncome.ToString("F2")</div>
-    <div class="col-md-4"><strong>Total expense:</strong> @Model.TotalExpense.ToString("F2")</div>
-    <div class="col-md-4"><strong>Balance:</strong> @Model.Balance.ToString("F2")</div>
+        <table class="table table-striped table-hover align-middle table-sm fs-6">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.Date.ToString("dd.MM.yyyy")</td>
+                        <td>@item.Amount.ToString("F2")</td>
+                        <td>@item.Type</td>
+                        <td>@(item.Category?.Name ?? "-")</td>
+                        <td data-bs-toggle="tooltip"
+                            data-bs-placement="left"
+                            data-bs-title="@item.Description">
+                            @(string.IsNullOrEmpty(item.Description)
+                                                ? "-"
+                                                : item.Description.Length > 8
+                                                ? item.Description.Substring(0, 8) + "..."
+                                                : item.Description)
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.Id" data-bs-toggle="tooltip" data-bs-title="Detail"><i class="bi bi-info-circle me-2"></i></a>
+                            <a asp-action="Edit" asp-route-id="@item.Id" data-bs-toggle="tooltip" data-bs-title="Edit"><i class="bi bi-pencil me-2"></i></a>
+                            <a asp-action="Delete" asp-route-id="@item.Id" data-bs-toggle="tooltip" data-bs-title="Delete"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Amount</th>
-            <th>Type</th>
-            <th>Category</th>
-            <th>Description</th>
-            <th>Created</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.Items)
-        {
-            <tr>
-                <td>@item.Date.ToString("dd.MM.yyyy")</td>
-                <td>@item.Amount.ToString("F2")</td>
-                <td>@item.Type</td>
-                <td>@(item.Category?.Name ?? "-")</td>
-                <td>@item.Description</td>
-                <td>@item.CreatedAt.ToString("dd.MM.yyyy")</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>

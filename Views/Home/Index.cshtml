@@ -1,17 +1,18 @@
-﻿@{
+﻿@using System.Globalization;
+@{
     ViewData["Title"] = "Home Page";
 }
 
 <h1 class="h5 mb-3">
     <i class="bi bi-bar-chart-steps"></i>
-    Overview – @DateTime.Now.ToString("MMMM yyyy")
+    Overview – @DateTime.Now.ToString("MMMM yyyy", new CultureInfo("en-UK"))
 </h1>
 
 <div class="row g-3 mb-4">
     <div class="col-md-4">
         <div class="card">
-            <div class="card-body">
-                <div class="text-muted">Balance (this month)</div>
+            <div class="card-body rounded-4 shadow-sm">
+                <div class="text-muted"><i class="bi bi-bank"></i> Balance</div>
                 <div class="fs-4 fw-semibold @(Model.BalanceThisMonth < 0 ? "text-danger" : "text-success")">
                     @Model.BalanceThisMonth.ToString("F1") <span class="text-muted fs-6">CZK</span>
                 </div>
@@ -21,8 +22,8 @@
 
     <div class="col-md-4">
         <div class="card">
-            <div class="card-body">
-                <div class="text-muted">Total income (this month)</div>
+            <div class="card-body rounded-4 shadow-sm">
+                <div class="text-muted"><i class="bi bi-graph-up-arrow"></i> Total income</div>
                 <div class="fs-4 fw-semibold text-success">
                     @Model.TotalIncomeThisMonth.ToString("F1") <span class="text-muted fs-6">CZK</span>
                 </div>
@@ -32,8 +33,8 @@
 
     <div class="col-md-4">
         <div class="card">
-            <div class="card-body">
-                <div class="text-muted">Total expense (this month)</div>
+            <div class="card-body rounded-4 shadow-sm">
+                <div class="text-muted"><i class="bi bi-graph-down-arrow"></i> Total expense</div>
                 <div class="fs-4 fw-semibold text-danger">
                     @Model.TotalExpenseThisMonth.ToString("F1") <span class="text-muted fs-6">CZK</span>
                 </div>
@@ -43,8 +44,8 @@
 
     <div class="col-md-4">
         <div class="card">
-            <div class="card-body">
-                <div class="text-muted">Top category (this month)</div>
+            <div class="card-body rounded-4 shadow-sm">
+                <div class="text-muted"><i class="bi bi-trophy"></i> Top category</div>
                 <div class="fs-5 fw-semibold">
                     @Model.TopCategoryThisMonth
                 </div>
@@ -54,37 +55,43 @@
 </div>
 
 <div class="d-flex justify-content-between align-items-center mb-2">
-    <h2 class="h5 mb-0">Last 5 transactions</h2>
+    <h2 class="h5 mb-0"><i class="bi bi-dice-5"></i> Last 5 transactions</h2>
     <a class="btn btn-sm btn-outline-secondary" asp-controller="Transactions" asp-action="Index">View all</a>
 </div>
 
 @if (Model.Last5Transactions == null || Model.Last5Transactions.Count == 0)
 {
-    <div class="alert alert-info">
-        No transactions yet. Add your first one in <a asp-controller="Transactions" asp-action="Create">Transactions</a>.
+    <div class="card">
+        <div class="alert alert-info">
+            No transactions yet. Add your first one in <a asp-controller="Transactions" asp-action="Create">Transactions</a>.
+        </div>
     </div>
 }
 else
 {
-    <table class="table table-hover align-middle">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Category</th>
-                <th class="text-end">Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var t in Model.Last5Transactions)
-            {
-                <tr>
-                    <td>@t.Date.ToString("dd.MM.yyyy")</td>
-                    <td>@t.Type</td>
-                    <td>@(t.Category?.Name ?? "-")</td>
-                    <td class="text-end">@t.Amount.ToString("F1")</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="card">
+        <div class="card-body p-2 rounded-4 shadow-sm">
+            <table class="table table-striped table-hover align-middle table-sm fs-6">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Category</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in Model.Last5Transactions)
+                    {
+                        <tr>
+                            <td>@t.Date.ToString("dd.MM.yyyy")</td>
+                            <td>@t.Type</td>
+                            <td>@(t.Category?.Name ?? "-")</td>
+                            <td class="text-end">@t.Amount.ToString("F1")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 }
