@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Expense_Tracker_mvc.Data;
+using Expense_Tracker_mvc.Models;
+using Expense_Tracker_mvc.Models.Enums;
+using Expense_Tracker_mvc.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Expense_Tracker_mvc.Data;
-using Expense_Tracker_mvc.Models;
-using Expense_Tracker_mvc.ViewModels;
-using Expense_Tracker_mvc.Models.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Expense_Tracker_mvc.Controllers
 {
@@ -127,7 +128,12 @@ namespace Expense_Tracker_mvc.Controllers
                 "Name"
             );
 
-            return View();
+            var model = new Transaction
+            {
+                Date = DateTime.Today
+            };
+
+            return View(model);
         }
 
         // POST: Transactions/Create
@@ -139,7 +145,7 @@ namespace Expense_Tracker_mvc.Controllers
         {
             if (ModelState.IsValid)
             {
-                transaction.CreatedAt = DateTime.UtcNow;
+                transaction.CreatedAt = DateTime.Now;
 
                 _context.Add(transaction);
                 await _context.SaveChangesAsync();
