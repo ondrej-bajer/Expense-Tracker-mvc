@@ -2,6 +2,7 @@ using Expense_Tracker_mvc.Data;
 using Expense_Tracker_mvc.Models;
 using Expense_Tracker_mvc.Models.Enums;
 using Expense_Tracker_mvc.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
@@ -9,6 +10,7 @@ using System.Diagnostics;
 
 namespace Expense_Tracker_mvc.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly AppDbContext _context;

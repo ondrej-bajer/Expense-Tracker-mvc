@@ -1,8 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-using System;
 using Expense_Tracker_mvc.Data;
+using Expense_Tracker_mvc.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.IO;
-
 
 namespace Expense_Tracker_mvc
 {
@@ -12,22 +12,28 @@ namespace Expense_Tracker_mvc
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // MVC + (Identity UI needs Razor Pages)
             builder.Services.AddControllersWithViews();
+            builder.Services.AddRazorPages();
 
             var dbPath = Path.Combine(builder.Environment.ContentRootPath, "expense_tracker.db");
 
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlite($"Data Source={dbPath}"));
 
-            builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite($"Data Source={dbPath}"));
-            Console.WriteLine($"[DB] Using: {dbPath}");
+            // ✅ Identity for your custom user
+            builder.Services
+                .AddDefaultIdentity<ApplicationUser>(options =>
+                {
+                    options.SignIn.RequireConfirmedAccount = false;
+                })
+                .AddEntityFrameworkStores<AppDbContext>();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
@@ -36,11 +42,16 @@ namespace Expense_Tracker_mvc
 
             app.UseRouting();
 
+            // ✅ MUST be before Authorization
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
+
+            // ✅ Identity endpoints (/Identity/Account/Login etc.)
+            app.MapRazorPages();
 
             app.Run();
         }

@@ -2,6 +2,7 @@
 using Expense_Tracker_mvc.Models;
 using Expense_Tracker_mvc.Models.Enums;
 using Expense_Tracker_mvc.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Expense_Tracker_mvc.Controllers
 {
+    [Authorize]
     public class TransactionsController : Controller
     {
         private readonly AppDbContext _context;

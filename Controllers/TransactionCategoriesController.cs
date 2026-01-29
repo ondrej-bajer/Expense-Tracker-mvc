@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Expense_Tracker_mvc.Data;
+using Expense_Tracker_mvc.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Expense_Tracker_mvc.Data;
-using Expense_Tracker_mvc.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Expense_Tracker_mvc.Controllers
 {
+    [Authorize]
     public class TransactionCategoriesController : Controller
     {
         private readonly AppDbContext _context;
