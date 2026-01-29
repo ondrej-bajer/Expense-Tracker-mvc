@@ -10,6 +10,8 @@ The last item in the navigation bar is a Settings section, which currently serve
 - MVC architecture with separation of concerns
 - Entity Framework Core
 - Local SQLite database
+- Authentication (ASP.NET Core Identity)
+- Per-user transactions (OwnerId) and transaction categories
 
 ## Tech stack
 - ASP.NET Core MVC
@@ -19,15 +21,7 @@ The last item in the navigation bar is a Settings section, which currently serve
 ## Project status
 Work in progress. The core functionality is implemented and stable, UI refinement, and feature expansion.
 
-### Current focus
-- UI and UX improvements on main index views accessible from the navigation bar  
-- Improved table density, typography, and visual hierarchy  
-- Subtle styling enhancements for dashboard and navigation elements  
-
-*(Detail and preview views are intentionally out of scope for the current iteration.)*
-
 ### Short-term goals
-- Authentication (ASP.NET Core Identity)
 - Basic overview charts and enhanced statistics on the Home dashboard
 - Multi-currency support
 
