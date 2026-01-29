@@ -3,9 +3,11 @@ using Expense_Tracker_mvc.Models;
 using Expense_Tracker_mvc.Models.Enums;
 using Expense_Tracker_mvc.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Identity;
 
 
 namespace Expense_Tracker_mvc.Controllers
@@ -14,21 +16,29 @@ namespace Expense_Tracker_mvc.Controllers
     public class HomeController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
 
-        public HomeController(AppDbContext context)
+        public HomeController(AppDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index()
         {
+            var userId = _userManager.GetUserId(User);
+
+            if (string.IsNullOrEmpty(userId))
+                return Challenge();
+
             var today = DateTime.Today;
             var from = new DateTime(today.Year, today.Month, 1);
             var to = from.AddMonths(1); // exclusive
 
             var monthItems = await _context.Transactions
                 .Include(t => t.Category)
+                .Where(t => t.OwnerId == userId)
                 .Where(t => t.Date >= from && t.Date < to)
                 .ToListAsync();
 
@@ -51,6 +61,7 @@ namespace Expense_Tracker_mvc.Controllers
 
             var last5 = await _context.Transactions
                 .Include(t => t.Category)
+                .Where(t => t.OwnerId == userId)
                 .OrderByDescending(t => t.Date)
                 .ThenByDescending(t => t.CreatedAt)
                 .Take(5)

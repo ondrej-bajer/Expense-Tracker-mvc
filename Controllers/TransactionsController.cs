@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Microsoft.AspNetCore.Identity;
+
 
 namespace Expense_Tracker_mvc.Controllers
 {
@@ -18,18 +20,23 @@ namespace Expense_Tracker_mvc.Controllers
     public class TransactionsController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public TransactionsController(AppDbContext context)
+        public TransactionsController(AppDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Transactions
         public async Task<IActionResult> Index(TransactionsIndexVm vm)
         {
+            //for selecting user
+            var userId = _userManager.GetUserId(User);
             // Base query
             var query = _context.Transactions
                 .Include(t => t.Category)
+                .Where(t => t.OwnerId == userId)
                 .AsQueryable();
 
             // Filters
@@ -78,7 +85,7 @@ namespace Expense_Tracker_mvc.Controllers
 
             // Dropdowns
             vm.Categories = await _context.TransactionCategories
-                .Where(c => c.IsActive)
+                .Where(c => c.IsActive && c.OwnerId == userId) //select dropdown based on user
                 .OrderBy(c => c.Name)
                 .Select(c => new SelectListItem
                 {
@@ -109,9 +116,11 @@ namespace Expense_Tracker_mvc.Controllers
                 return NotFound();
             }
 
+            var userId = _userManager.GetUserId(User);
+
             var transaction = await _context.Transactions
                 .Include(t => t.Category)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Id == id && m.OwnerId == userId);
 
             if (transaction == null)
             {
@@ -124,8 +133,10 @@ namespace Expense_Tracker_mvc.Controllers
         // GET: Transactions/Create
         public IActionResult Create()
         {
+            var userId = _userManager.GetUserId(User);
+
             ViewData["CategoryId"] = new SelectList(
-                _context.TransactionCategories.Where(c => c.IsActive),
+                _context.TransactionCategories.Where(c => c.IsActive && c.OwnerId == userId),
                 "Id",
                 "Name"
             );
@@ -145,9 +156,22 @@ namespace Expense_Tracker_mvc.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Date,Amount,Type,CategoryId,Description")] Transaction transaction)
         {
+            var userId = _userManager.GetUserId(User);
+
             if (ModelState.IsValid)
             {
+                // Ownership + timestamps server-side
+                transaction.OwnerId = userId;
                 transaction.CreatedAt = DateTime.Now;
+
+                //Ensure selected category belongs to current user
+                var categoryOk = await _context.TransactionCategories
+                    .AnyAsync(c => c.Id == transaction.CategoryId && c.IsActive && c.OwnerId == userId);
+
+                if (!categoryOk)
+                {
+                    return NotFound();
+                }
 
                 _context.Add(transaction);
                 await _context.SaveChangesAsync();
@@ -156,7 +180,8 @@ namespace Expense_Tracker_mvc.Controllers
 
             // In a case of wrong validation fill dropdown + keep chosen value
             ViewData["CategoryId"] = new SelectList(
-                _context.TransactionCategories.Where(c => c.IsActive),
+                _context.TransactionCategories
+                    .Where(c => c.IsActive && c.OwnerId == userId),
                 "Id",
                 "Name",
                 transaction.CategoryId
@@ -173,14 +198,17 @@ namespace Expense_Tracker_mvc.Controllers
                 return NotFound();
             }
 
-            var transaction = await _context.Transactions.FindAsync(id);
+            var userId = _userManager.GetUserId(User);
+
+            var transaction = await _context.Transactions.FirstOrDefaultAsync(t => t.Id == id && t.OwnerId == userId);
+
             if (transaction == null)
             {
                 return NotFound();
             }
 
             ViewData["CategoryId"] = new SelectList(
-                _context.TransactionCategories.Where(c => c.IsActive),
+                _context.TransactionCategories.Where(c => c.IsActive && c.OwnerId == userId),
                 "Id",
                 "Name",
                 transaction.CategoryId
@@ -201,42 +229,57 @@ namespace Expense_Tracker_mvc.Controllers
                 return NotFound();
             }
 
+            var userId = _userManager.GetUserId(User);
+
             if (ModelState.IsValid)
             {
+                // load only current user's transaction
+                var existing = await _context.Transactions
+                    .FirstOrDefaultAsync(t => t.Id == id && t.OwnerId == userId);
+
+                if (existing == null)
+                {
+                    return NotFound(); // neprozrazuje, že cizí existuje
+                }
+
+                // validate category belongs to user
+                var categoryOk = await _context.TransactionCategories
+                    .AnyAsync(c => c.Id == transaction.CategoryId && c.IsActive && c.OwnerId == userId);
+
+                if (!categoryOk)
+                {
+                    return NotFound();
+                }
+
+                // update allowed fields only
+                existing.Date = transaction.Date;
+                existing.Amount = transaction.Amount;
+                existing.Type = transaction.Type;
+                existing.CategoryId = transaction.CategoryId;
+                existing.Description = transaction.Description;
+
                 try
                 {
-                    // keep CreatedAt but dont edit it in form
-                    var existing = await _context.Transactions.AsNoTracking()
-                        .FirstOrDefaultAsync(t => t.Id == id);
-
-                    if (existing == null)
-                    {
-                        return NotFound();
-                    }
-
-                    transaction.CreatedAt = existing.CreatedAt;
-
-                    _context.Update(transaction);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!TransactionExists(transaction.Id))
-                    {
+                    // check existence WITH ownership
+                    var stillExists = await _context.Transactions
+                        .AnyAsync(t => t.Id == id && t.OwnerId == userId);
+
+                    if (!stillExists)
                         return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
 
                 return RedirectToAction(nameof(Index));
             }
 
-            // In a case of wrong validation "fallback" for dropdown
+            // dropdown only current user's categories
             ViewData["CategoryId"] = new SelectList(
-                _context.TransactionCategories.Where(c => c.IsActive),
+                _context.TransactionCategories.Where(c => c.IsActive && c.OwnerId == userId),
                 "Id",
                 "Name",
                 transaction.CategoryId
@@ -253,9 +296,11 @@ namespace Expense_Tracker_mvc.Controllers
                 return NotFound();
             }
 
+            var userId = _userManager.GetUserId(User);
+
             var transaction = await _context.Transactions
                 .Include(t => t.Category)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Id == id && m.OwnerId == userId);
             if (transaction == null)
             {
                 return NotFound();
@@ -269,19 +314,27 @@ namespace Expense_Tracker_mvc.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var transaction = await _context.Transactions.FindAsync(id);
-            if (transaction != null)
+            var userId = _userManager.GetUserId(User);
+
+            var transaction = await _context.Transactions.FirstOrDefaultAsync(t => t.Id == id && t.OwnerId == userId);
+
+            if (transaction == null)
             {
-                _context.Transactions.Remove(transaction);
+                return NotFound();
             }
 
+            _context.Transactions.Remove(transaction);
             await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
         private bool TransactionExists(int id)
         {
-            return _context.Transactions.Any(e => e.Id == id);
+            var userId = _userManager.GetUserId(User);
+
+            return _context.Transactions
+                .Any(e => e.Id == id && e.OwnerId == userId);
         }
     }
 }
