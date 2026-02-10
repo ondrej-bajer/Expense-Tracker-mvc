@@ -13,6 +13,9 @@ namespace Expense_Tracker_mvc.ViewModels
         public string TopCategoryThisMonth { get; set; } = "-";
 
         public List<Transaction> Last5Transactions { get; set; } = new();
+
+        public List<MonthlySeriesPointVm> IncomeExpenseLast12Months { get; set; } = new();
+        public List<CategorySliceVm> ExpenseByCategoryThisMonth { get; set; } = new();
     }
 
 

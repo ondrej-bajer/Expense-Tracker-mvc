@@ -42,6 +42,33 @@ namespace Expense_Tracker_mvc.Controllers
                 .Where(t => t.Date >= from && t.Date < to)
                 .ToListAsync();
 
+            // ===== 12 months range (including current month) =====
+            var seriesStart = from.AddMonths(-11);
+            var seriesEndExclusive = to;
+
+            // Load transactions for last 12 months
+            var tx12m = await _context.Transactions
+                .AsNoTracking()
+                .Include(t => t.Category)
+                .Where(t => t.OwnerId == userId)
+                .Where(t => t.Date >= seriesStart && t.Date < seriesEndExclusive)
+                .ToListAsync();
+
+            // ===== Chart 1: Income vs Expense (12 months) =====
+            var incomeExpenseSeries = BuildMonthlySeries(tx12m, seriesStart, 12);
+
+            // ===== Chart 2: Expense by category (this month) =====
+            var expenseByCategoryThisMonth = monthItems
+                .Where(t => t.Type == TransactionType.Expense)
+                .GroupBy(t => t.Category?.Name ?? "-")
+                .Select(g => new CategorySliceVm
+                {
+                    Category = g.Key,
+                    Amount = g.Sum(x => x.Amount)
+                })
+                .OrderByDescending(x => x.Amount)
+                .ToList();
+
             // Income/Expense in-memory (SQLite problem with SUM(decimal))
             var income = monthItems
                 .Where(t => t.Type == TransactionType.Income)
@@ -72,7 +99,10 @@ namespace Expense_Tracker_mvc.Controllers
                 TotalIncomeThisMonth = income,
                 TotalExpenseThisMonth = expense,
                 TopCategoryThisMonth = topCategory?.Category ?? "-",
-                Last5Transactions = last5
+                Last5Transactions = last5,
+
+                IncomeExpenseLast12Months = incomeExpenseSeries,
+                ExpenseByCategoryThisMonth = expenseByCategoryThisMonth
             };
 
             return View(vm);
@@ -82,6 +112,39 @@ namespace Expense_Tracker_mvc.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        private static List<MonthlySeriesPointVm> BuildMonthlySeries(
+    List<Transaction> tx,
+    DateTime startMonth,
+    int months)
+        {
+            var dict = tx
+                .GroupBy(t => new { t.Date.Year, t.Date.Month })
+                .ToDictionary(
+                    g => (g.Key.Year, g.Key.Month),
+                    g => new
+                    {
+                        Income = g.Where(x => x.Type == TransactionType.Income).Sum(x => x.Amount),
+                        Expense = g.Where(x => x.Type == TransactionType.Expense).Sum(x => x.Amount)
+                    });
+
+            var result = new List<MonthlySeriesPointVm>(months);
+
+            for (int i = 0; i < months; i++)
+            {
+                var m = startMonth.AddMonths(i);
+                dict.TryGetValue((m.Year, m.Month), out var agg);
+
+                result.Add(new MonthlySeriesPointVm
+                {
+                    Month = m.ToString("yyyy-MM"),
+                    Income = agg?.Income ?? 0m,
+                    Expense = agg?.Expense ?? 0m
+                });
+            }
+
+            return result;
         }
     }
 }

@@ -12,7 +12,6 @@ namespace Expense_Tracker_mvc
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // MVC + (Identity UI needs Razor Pages)
             builder.Services.AddControllersWithViews();
             builder.Services.AddRazorPages();
 
@@ -21,7 +20,7 @@ namespace Expense_Tracker_mvc
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlite($"Data Source={dbPath}"));
 
-            // ✅ Identity for your custom user
+            // Identity for custom user
             builder.Services
                 .AddDefaultIdentity<ApplicationUser>(options =>
                 {
@@ -42,7 +41,7 @@ namespace Expense_Tracker_mvc
 
             app.UseRouting();
 
-            // ✅ MUST be before Authorization
+            //Authentication must be before Authorization
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -50,7 +49,7 @@ namespace Expense_Tracker_mvc
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 
-            // ✅ Identity endpoints (/Identity/Account/Login etc.)
+            //Identity endpoints (/Identity/Account/Login etc.)
             app.MapRazorPages();
 
             app.Run();
