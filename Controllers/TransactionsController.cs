@@ -31,45 +31,13 @@ namespace Expense_Tracker_mvc.Controllers
         // GET: Transactions
         public async Task<IActionResult> Index(TransactionsIndexVm vm)
         {
-            //for selecting user
             var userId = _userManager.GetUserId(User);
-            // Base query
-            var query = _context.Transactions
-                .Include(t => t.Category)
-                .Where(t => t.OwnerId == userId)
-                .AsQueryable();
 
-            // Filters
-            if (vm.Type.HasValue)
-                query = query.Where(t => t.Type == vm.Type.Value);
+            if (string.IsNullOrEmpty(userId))
+                return Challenge();
 
-            if (vm.CategoryId.HasValue)
-                query = query.Where(t => t.CategoryId == vm.CategoryId.Value);
-
-            if (vm.From.HasValue)
-                query = query.Where(t => t.Date >= vm.From.Value);
-
-            if (vm.To.HasValue)
-                query = query.Where(t => t.Date <= vm.To.Value);
-
-            if (vm.AmountMin.HasValue)
-                query = query.Where(t => t.Amount >= vm.AmountMin.Value);
-
-            if (vm.AmountMax.HasValue)
-                query = query.Where(t => t.Amount <= vm.AmountMax.Value);
-
-            if (!string.IsNullOrWhiteSpace(vm.Search))
-            {
-                var s = vm.Search.Trim();
-                query = query.Where(t =>
-                    (t.Description != null && t.Description.Contains(s)) ||
-                    (t.Category != null && t.Category.Name.Contains(s)));
-            }
-
-            // Ordering based first on date then creation date
-            query = query
-                .OrderByDescending(t => t.Date)
-                .ThenByDescending(t => t.CreatedAt);
+            // same logic for filter in filter and export
+            var query = BuildFilteredQuery(userId, vm);
 
             // Data
             vm.Items = await query.ToListAsync();
@@ -85,7 +53,7 @@ namespace Expense_Tracker_mvc.Controllers
 
             // Dropdowns
             vm.Categories = await _context.TransactionCategories
-                .Where(c => c.IsActive && c.OwnerId == userId) //select dropdown based on user
+                .Where(c => c.IsActive && c.OwnerId == userId)
                 .OrderBy(c => c.Name)
                 .Select(c => new SelectListItem
                 {
@@ -327,6 +295,106 @@ namespace Expense_Tracker_mvc.Controllers
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
+        }
+
+        //this query mimic filters for export
+        private IQueryable<Transaction> BuildFilteredQuery(string userId, TransactionsIndexVm vm)
+        {
+            var query = _context.Transactions
+                .AsNoTracking()
+                .Include(t => t.Category)
+                .Where(t => t.OwnerId == userId)
+                .AsQueryable();
+
+            if (vm.Type.HasValue)
+                query = query.Where(t => t.Type == vm.Type.Value);
+
+            if (vm.CategoryId.HasValue)
+                query = query.Where(t => t.CategoryId == vm.CategoryId.Value);
+
+            if (vm.From.HasValue)
+                query = query.Where(t => t.Date >= vm.From.Value);
+
+            if (vm.To.HasValue)
+                query = query.Where(t => t.Date <= vm.To.Value);
+
+            if (vm.AmountMin.HasValue)
+                query = query.Where(t => t.Amount >= vm.AmountMin.Value);
+
+            if (vm.AmountMax.HasValue)
+                query = query.Where(t => t.Amount <= vm.AmountMax.Value);
+
+            if (!string.IsNullOrWhiteSpace(vm.Search))
+            {
+                var s = vm.Search.Trim();
+                query = query.Where(t =>
+                    (t.Description != null && EF.Functions.Like(t.Description, $"%{s}%")) ||
+                    (t.Category != null && EF.Functions.Like(t.Category.Name, $"%{s}%")));
+            }
+
+            return query
+                .OrderByDescending(t => t.Date)
+                .ThenByDescending(t => t.CreatedAt);
+        }
+
+        //export to csv
+        [HttpGet]
+        public async Task<IActionResult> ExportCsv([FromQuery] TransactionsIndexVm vm)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId)) return Challenge();
+
+            var query = BuildFilteredQuery(userId, vm);
+
+            var rows = await query
+                .Select(t => new
+                {
+                    t.Date,
+                    t.Type,
+                    Category = t.Category != null ? t.Category.Name : "-",
+                    t.Amount,
+                    t.Description
+                })
+                .ToListAsync();
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("Date;Type;Category;Amount;Description");
+
+            foreach (var r in rows)
+            {
+                sb.Append(r.Date.ToString("yyyy-MM-dd")).Append(';');
+                sb.Append(r.Type).Append(';');
+                sb.Append(Csv(r.Category)).Append(';');
+                sb.Append(r.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(';');
+                sb.Append(Csv(r.Description ?? "")).AppendLine();
+            }
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
+            return File(bytes, "text/csv; charset=utf-8", $"transactions_{DateTime.Today:yyyyMMdd}.csv");
+
+            static string Csv(string s)
+            {
+                if (s.Contains(';') || s.Contains('"') || s.Contains('\n') || s.Contains('\r'))
+                    return $"\"{s.Replace("\"", "\"\"")}\"";
+                return s;
+            }
+        }
+
+        //export to pdf
+        [HttpGet]
+        public async Task<IActionResult> ExportPdf([FromQuery] TransactionsIndexVm vm)
+        {
+            var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId)) return Challenge();
+
+            var query = BuildFilteredQuery(userId, vm);
+            vm.Items = await query.ToListAsync();
+
+            vm.TotalIncome = vm.Items.Where(t => t.Type == TransactionType.Income).Sum(t => t.Amount);
+            vm.TotalExpense = vm.Items.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount);
+
+            // dropdowny pro PDF nepotřebuješ, klidně nech prázdné
+            return View("ExportPdf", vm);
         }
 
         private bool TransactionExists(int id)

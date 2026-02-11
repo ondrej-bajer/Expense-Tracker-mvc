@@ -19,10 +19,53 @@
                 data-bs-toggle="collapse"
                 data-bs-target="#filtersPanel"
                 aria-expanded="false"
+                disabled="@(Model.Items == null || Model.Items.Count == 0)"
                 aria-controls="filtersPanel">
+
             <i class="bi bi-funnel me-1"></i>
             Filters
         </button>
+
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                <i class="bi bi-download me-1"></i>
+                Export
+            </button>
+
+            <ul class="dropdown-menu">
+                <li>
+                    <a class="dropdown-item"
+                       asp-action="ExportCsv"
+                       asp-route-Type="@Model.Type"
+                       asp-route-CategoryId="@Model.CategoryId"
+                       asp-route-From="@Model.From"
+                       asp-route-To="@Model.To"
+                       asp-route-AmountMin="@Model.AmountMin"
+                       asp-route-AmountMax="@Model.AmountMax"
+                       asp-route-Search="@Model.Search">
+                        CSV
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item"
+                       asp-action="ExportPdf"
+                       asp-route-Type="@Model.Type"
+                       asp-route-CategoryId="@Model.CategoryId"
+                       asp-route-From="@Model.From"
+                       asp-route-To="@Model.To"
+                       asp-route-AmountMin="@Model.AmountMin"
+                       asp-route-AmountMax="@Model.AmountMax"
+                       asp-route-Search="@Model.Search"
+                       target="_blank">
+                        PDF
+                    </a>
+                </li>
+            </ul>
+        </div>
+
     </div>
 </div>
 
