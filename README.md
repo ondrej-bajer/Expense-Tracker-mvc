@@ -12,6 +12,8 @@ The last item in the navigation bar is a Settings section, which currently serve
 - Local SQLite database
 - Authentication (ASP.NET Core Identity)
 - Per-user transactions (OwnerId) and transaction categories
+- Basic overview charts on home page
+- Export to CSV / PDF for selected transactions
 
 ## Tech stack
 - ASP.NET Core MVC
@@ -22,12 +24,9 @@ The last item in the navigation bar is a Settings section, which currently serve
 Work in progress. The core functionality is implemented and stable, UI refinement, and feature expansion.
 
 ### Short-term goals
-- Basic overview charts and enhanced statistics on the Home dashboard
 - Multi-currency support
 
 ### Mid / long-term goals
-- Per-user transactions (OwnerId)
-- Export to CSV / PDF
 - Recurring income and expense items
 - Automatic currency conversion to a primary currency
 - Continued UI/UX improvements
