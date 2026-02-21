@@ -1,5 +1,6 @@
 using Expense_Tracker_mvc.Data;
 using Expense_Tracker_mvc.Models;
+using Expense_Tracker_mvc.Services.Fx;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
@@ -14,6 +15,7 @@ namespace Expense_Tracker_mvc
 
             builder.Services.AddControllersWithViews();
             builder.Services.AddRazorPages();
+            builder.Services.AddHttpClient<IFxRateService, FxRateService>();
 
             var dbPath = Path.Combine(builder.Environment.ContentRootPath, "expense_tracker.db");
 
