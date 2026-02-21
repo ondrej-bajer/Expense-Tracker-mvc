@@ -1,32 +1,79 @@
 # Expense Tracker (ASP.NET Core MVC)
 
-A simple ASP.NET Core MVC application for tracking personal expenses.
-Users have an overview of the current month with key summary information, followed by a section for adding transactions and a table with filtering options for transaction history.
-The last item in the navigation bar is a Settings section, which currently serves as a management area for transaction categories.
+An ASP.NET Core MVC application for tracking personal expenses with authentication and per-user data isolation.
 
-## What to expect
+The application provides a monthly financial overview, transaction management, category management, export functionality, and automatic foreign exchange rate integration via the Czech National Bank (CNB).
+
+---
+
+## Features
+
 - CRUD operations for transactions
 - CRUD management of expense categories
-- MVC architecture with separation of concerns
-- Entity Framework Core
-- Local SQLite database
-- Authentication (ASP.NET Core Identity)
-- Per-user transactions (OwnerId) and transaction categories
-- Basic overview charts on home page
-- Export to CSV / PDF for selected transactions
+- Per-user data isolation (OwnerId)
+- Authentication via ASP.NET Core Identity
+- Monthly overview with summary charts
+- Export selected transactions to CSV / PDF
+- Automatic daily FX rate download from CNB
+- Persistent FX rate storage with anti-spam throttling
+- Settings section for managing transaction categories and viewing current FX rates
 
-## Tech stack
-- ASP.NET Core MVC
+---
+
+## Multi-Currency & FX Integration
+
+The application integrates with the Czech National Bank (CNB) daily exchange rate feed:
+
+- FX rates are automatically fetched on application startup
+- Rates are stored per published date
+- Weekend / holiday handling (CNB may return previous working day)
+- Anti-spam protection prevents repeated downloads
+- FX rate history is persisted in the database
+- Current FX rates are viewable in the Settings section
+
+Architecture highlights:
+- `FxRate` entity stores published exchange rates
+- `FxRateFetchLog` prevents repeated daily downloads
+- Startup background service ensures daily rate availability
+
+---
+
+## Architecture
+
+- MVC pattern with clear separation of concerns
+- EF Core with SQLite
+- Identity-based authentication
+- Service layer for external integrations (CNB FX)
+- Background startup task for daily FX validation
+
+---
+
+## Tech Stack
+
+- ASP.NET Core MVC (.NET 8)
 - Entity Framework Core
 - SQLite
+- ASP.NET Core Identity
 
-## Project status
-Work in progress. The core functionality is implemented and stable, UI refinement, and feature expansion.
+---
 
-### Short-term goals
-- Multi-currency support
+## Project Status
 
-### Mid / long-term goals
+Work in progress.
+
+Core expense tracking functionality is stable.
+Multi-currency foundation and FX infrastructure are implemented.
+Further UI and feature enhancements are planned.
+
+---
+
+## Roadmap
+
+### Short-term
+- Full transaction multi-currency support
+- Automatic conversion to primary currency
+
+### Mid / Long-term
 - Recurring income and expense items
-- Automatic currency conversion to a primary currency
-- Continued UI/UX improvements
+- Budget tracking
+- UI/UX refinement
