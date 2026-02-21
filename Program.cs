@@ -15,7 +15,12 @@ namespace Expense_Tracker_mvc
 
             builder.Services.AddControllersWithViews();
             builder.Services.AddRazorPages();
-            builder.Services.AddHttpClient<IFxRateService, FxRateService>();
+
+            builder.Services.AddHttpClient<IFxRateService, FxRateService>(c =>
+            {
+                c.Timeout = TimeSpan.FromSeconds(10);
+            });
+
             builder.Services.AddHostedService<FxRateStartupHostedService>();
 
             var dbPath = Path.Combine(builder.Environment.ContentRootPath, "expense_tracker.db");

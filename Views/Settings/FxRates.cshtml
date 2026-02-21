@@ -1,0 +1,47 @@
+﻿@model List<Expense_Tracker_mvc.Models.FxRate>
+
+@{
+    ViewData["Title"] = "Current FX rate";
+    var date = (DateTime?)ViewBag.RatesDate;
+}
+
+<h2>Current FX rate</h2>
+
+@if (date is not null)
+{
+    <p>Rates date: <strong>@date.Value.ToString("yyyy-MM-dd")</strong></p>
+}
+
+@if (Model is null || Model.Count == 0)
+{
+    <div class="alert alert-warning">
+        No FX rates found in the database.
+    </div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>CZK / 1</th>
+                <th>Amount</th>
+                <th>CZK / Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model)
+            {
+                <tr>
+                    <td>@r.Code</td>
+                    <td>@r.RatePerUnit</td>
+                    <td>@r.Amount</td>
+                    <td>@r.Rate</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        Back
+    </a>
+}
