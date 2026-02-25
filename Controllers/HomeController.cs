@@ -80,6 +80,7 @@ namespace Expense_Tracker_mvc.Controllers
 
             // Top category this month
             var topCategory = monthItems
+                .Where(t => t.Type == TransactionType.Expense)
                 .Where(t => t.Category != null)
                 .GroupBy(t => t.Category!.Name)
                 .Select(g => new { Category = g.Key, Total = g.Sum(x => x.Amount) })
