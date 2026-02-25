@@ -1,6 +1,7 @@
 using Expense_Tracker_mvc.Data;
 using Expense_Tracker_mvc.Models;
 using Expense_Tracker_mvc.Services.Fx;
+using Expense_Tracker_mvc.Services.Import;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
@@ -15,6 +16,8 @@ namespace Expense_Tracker_mvc
 
             builder.Services.AddControllersWithViews();
             builder.Services.AddRazorPages();
+
+            builder.Services.AddScoped<TransactionImportService>();
 
             builder.Services.AddHttpClient<IFxRateService, FxRateService>(c =>
             {
