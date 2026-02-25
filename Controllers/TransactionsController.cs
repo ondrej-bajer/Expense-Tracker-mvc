@@ -1,8 +1,10 @@
 ﻿using Expense_Tracker_mvc.Data;
 using Expense_Tracker_mvc.Models;
 using Expense_Tracker_mvc.Models.Enums;
+using Expense_Tracker_mvc.Services.Import;
 using Expense_Tracker_mvc.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +13,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using Microsoft.AspNetCore.Identity;
 
 
 namespace Expense_Tracker_mvc.Controllers
@@ -21,11 +22,13 @@ namespace Expense_Tracker_mvc.Controllers
     {
         private readonly AppDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly TransactionImportService _import;
 
-        public TransactionsController(AppDbContext context, UserManager<ApplicationUser> userManager)
+        public TransactionsController(AppDbContext context, UserManager<ApplicationUser> userManager, TransactionImportService import)
         {
             _context = context;
             _userManager = userManager;
+            _import = import;
         }
 
         // GET: Transactions
@@ -404,5 +407,32 @@ namespace Expense_Tracker_mvc.Controllers
             return _context.Transactions
                 .Any(e => e.Id == id && e.OwnerId == userId);
         }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportCsv(IFormFile file, CancellationToken ct)
+        {
+            if (file is null || file.Length == 0)
+                return BadRequest("File is empty.");
+
+            if (!Path.GetExtension(file.FileName).Equals(".csv", StringComparison.OrdinalIgnoreCase))
+                return BadRequest("Only .csv is supported.");
+
+            var ownerId = _userManager.GetUserId(User);
+            if (string.IsNullOrWhiteSpace(ownerId))
+                return Unauthorized();
+
+            using var stream = file.OpenReadStream();
+            var result = await _import.ImportCsvAsync(stream, ownerId, ct);
+
+            if (!result.Success)
+                return BadRequest(result.Errors);
+
+            // ideálně TempData message
+            return RedirectToAction("Index");
+        }
+
+
     }
 }
