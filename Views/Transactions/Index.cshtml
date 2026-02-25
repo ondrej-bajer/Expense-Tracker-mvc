@@ -65,7 +65,28 @@
                 </li>
             </ul>
         </div>
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown">
+                <i class="bi bi-upload me-1"></i>
+                Import
+            </button>
 
+            <div class="dropdown-menu p-3" style="min-width: 300px;">
+                <form asp-action="ImportCsv" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-2">
+                        <input type="file" name="file" accept=".csv" class="form-control form-control-sm" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                        Import CSV
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
